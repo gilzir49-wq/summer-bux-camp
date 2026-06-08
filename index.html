@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0d1410">
+<meta name="theme-color" content="#1F5D24">
 <title>מחנה סאמר BUX · לוז חי</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="סאמר BUX">
 <style>
 /* ===================== עיצוב — צבעי המותג של BUX ===================== */
 :root{
@@ -23,6 +29,9 @@ body{
   color:var(--txt); line-height:1.45; min-height:100vh; padding-bottom:40px;
 }
 .wrap{max-width:760px;margin:0 auto;padding:14px}
+/* לוגו */
+.logobar{text-align:center;padding:4px 0 12px}
+.logobar .logo{width:60%;max-width:220px;height:auto;filter:drop-shadow(0 8px 22px rgba(0,0,0,.55))}
 /* כותרת */
 header.top{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -32,7 +41,7 @@ header.top{
 }
 header.top::before{content:"";position:absolute;inset:0;
   background:linear-gradient(90deg,var(--gold),var(--green-lite));height:5px}
-.brand h1{margin:0;font-size:22px;font-weight:900;letter-spacing:-.5px}
+.brand h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.5px}
 .brand h1 b{color:var(--gold)}
 .brand .sub{color:#cfe6d6;font-size:13px;margin-top:3px}
 .clock{text-align:left;min-width:96px}
@@ -213,9 +222,11 @@ footer b{color:var(--gold)}
 <!--  בתוך טאב "סידור" באפליקציה (נשמר אוטומטית במכשיר).            -->
 <!-- ============================================================= -->
 
+<div class="logobar"><img class="logo" src="logo.png" alt="Summer BUX — CrossFit BUX Yehud"></div>
+
 <header class="top">
   <div class="brand">
-    <h1 id="campName"></h1>
+    <h1 id="campName" class="cname"></h1>
     <div class="sub" id="campSub"></div>
   </div>
   <div class="clock">

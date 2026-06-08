@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#0d1410">
-<title>מחנה סאמר BOX · לוז חי</title>
+<title>מחנה סאמר BUX · לוז חי</title>
 <style>
 /* ===================== עיצוב — צבעי המותג של BUX ===================== */
 :root{
@@ -185,13 +185,26 @@ body.view-plan #liveSection{display:none}
 .ghost{position:fixed;z-index:9999;pointer-events:none;background:linear-gradient(135deg,var(--green-lite),var(--green));
   color:#fff;border-radius:999px;padding:9px 14px;font-weight:800;font-size:14px;
   box-shadow:0 12px 34px rgba(0,0,0,.6);transform:translate(-50%,-50%);opacity:.96;display:flex;gap:6px;align-items:center}
+/* פס מצב עריכה + סטטוס סנכרון */
+.editbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.editbar .btn{flex:0 0 auto;min-width:0;padding:11px 16px}
+.syncstat{font-size:12px;font-weight:800;color:var(--muted)}
+.syncstat.ok{color:var(--green-lite)} .syncstat.warn{color:#fca5a5} .syncstat.busy{color:var(--gold)}
+body.edit-on #btnEdit{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#1a1400;border:0}
+/* נעילה: במצב צפייה לא משבצים */
+body.plan-locked #planDays .dropzone,
+body.plan-locked #planDays .branchSel,
+body.plan-locked #planDays .pnote,
+body.plan-locked #planDays .xrem{pointer-events:none}
+body.plan-locked #planDays{opacity:.92}
+body.plan-locked .pool{opacity:.55}
 
 footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px;line-height:1.7}
 footer b{color:var(--gold)}
 .section-title{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:.5px;margin:6px 2px 8px}
 </style>
 </head>
-<body>
+<body class="plan-locked">
 <div class="wrap">
 
 <!-- ============================================================= -->
@@ -253,10 +266,11 @@ footer b{color:var(--gold)}
 
 <!-- ===== מצב סידור ===== -->
 <div id="planSection">
-  <div class="planintro">
-    🟡 <b>גררו מאמן</b> מהמאגר אל משבצת — או <b>הקישו על מאמן</b> ואז על המשבצת (נוח בטלפון).<br>
-    אפשר לבחור ענף לכל משבצת, להוסיף כמה מאמנים, ולכתוב הערה. הכל נשמר אוטומטית במכשיר.
+  <div class="editbar">
+    <button class="btn" id="btnEdit">🔓 כניסה למצב עריכה</button>
+    <div class="syncstat" id="syncStat">☁️ טוען…</div>
   </div>
+  <div class="planintro" id="planIntro"></div>
   <div class="pool">
     <div class="pt">מאגר מאמנים — קחו וגררו 👇</div>
     <div class="coaches" id="pool"></div>
@@ -269,7 +283,7 @@ footer b{color:var(--gold)}
 </div>
 
 <footer>
-  <b>מחנה סאמר BOX</b> · לוז חי 🔴 מתעדכן אוטומטית<br>
+  <b>מחנה סאמר BUX</b> · לוז חי 🔴 מתעדכן אוטומטית<br>
   שמרו את הלינק במסך הבית של הטלפון לגישה מהירה.
 </footer>
 </div>
@@ -280,9 +294,20 @@ footer b{color:var(--gold)}
 <script id="DATA">
 /* ----- פרטי המחנה ----- */
 const CAMP = {
-  name:  'מחנה סאמר <b>BOX</b>',
+  name:  'מחנה סאמר <b>BUX</b>',
   dates: "5–16.7 · ימים א׳–ה׳ · שבועיים",
   hours: "10:00–14:00"
+};
+
+/* ----- סנכרון בענן (כולם רואים את אותו שיבוץ) -----
+   url  = כתובת מסד הנתונים (אל תשנה)
+   node = הצומת של המחנה (אל תשנה)
+   pin  = קוד הכניסה למצב עריכה. רק מי שיודע אותו יכול לשבץ ולפרסם.
+          שנה אותו למה שתרצה — מספרים או אותיות. */
+const CLOUD = {
+  url:  "https://command-center-gal-default-rtdb.europe-west1.firebasedatabase.app",
+  node: "summer-bux-camp",
+  pin:  "bux2026"
 };
 
 /* ----- מילון הענפים: שם + צבע + אמוג'י ----- */
@@ -404,8 +429,57 @@ function loadSchedule(){
   }catch(e){ return defaultSchedule(); }
 }
 let SCHED = loadSchedule();
-function saveSchedule(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SCHED)); }catch(e){} flashSaved(); }
+function saveLocal(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SCHED)); }catch(e){} }
+function saveSchedule(){ saveLocal(); flashSaved(); if(editMode) pushCloud(); }
 function flashSaved(){ const h=document.getElementById("saveHint"); h.textContent="✓ נשמר"; clearTimeout(flashSaved._t); flashSaved._t=setTimeout(()=>h.textContent="",1400); }
+
+/* ===== סנכרון ענן (Firebase Realtime Database) ===== */
+const CLOUD_EP = `${CLOUD.url}/${CLOUD.node}.json`;
+let editMode=false, lastSync=0;
+function setSync(cls,txt){ const e=document.getElementById("syncStat"); if(e){ e.className="syncstat "+cls; e.textContent=txt; } }
+async function loadCloud(){
+  try{ const r=await fetch(CLOUD_EP,{cache:"no-store"}); if(!r.ok) return null;
+    const o=await r.json(); if(o&&o.json) return {data:JSON.parse(o.json), updatedAt:o.updatedAt||0}; return null;
+  }catch(e){ return null; }
+}
+async function pushCloud(){
+  setSync("busy","מפרסם…");
+  try{
+    const stamp=Date.now();
+    const r=await fetch(CLOUD_EP,{method:"PUT",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({json:JSON.stringify(SCHED), updatedAt:stamp})});
+    if(r.ok){ lastSync=stamp; setSync("ok","✓ פורסם לכולם"); } else setSync("warn","⚠️ פרסום נכשל");
+  }catch(e){ setSync("warn","⚠️ אין חיבור"); }
+}
+async function adoptIfNewer(){
+  if(editMode) return;
+  const c=await loadCloud();
+  if(c){
+    if(c.updatedAt && c.updatedAt!==lastSync){
+      lastSync=c.updatedAt; SCHED=c.data; saveLocal();
+      if(view==="plan") renderPlanner(); else { renderLegend(); renderSchedule(); }
+      renderHero();
+    }
+    if(!editMode) setSync("ok","☁️ מסונכרן");
+  } else if(!editMode){ setSync("","☁️ ברירת מחדל (טרם פורסם)"); }
+}
+/* כניסה/יציאה ממצב עריכה */
+function requestUnlock(){
+  const p=prompt("קוד עריכה (רק לצוות):");
+  if(p===null) return;
+  if(p===CLOUD.pin) setEdit(true); else alert("קוד שגוי 🔒");
+}
+async function setEdit(on){
+  if(on) await adoptIfNewer();          // משוך את הגרסה האחרונה לפני עריכה
+  editMode=on;
+  document.body.classList.toggle("edit-on",on);
+  document.body.classList.toggle("plan-locked",!on);
+  document.getElementById("btnEdit").textContent = on?"🔒 יציאה ממצב עריכה":"🔓 כניסה למצב עריכה";
+  document.getElementById("planIntro").innerHTML = on
+    ? "🔓 <b>מצב עריכה פעיל</b> — גררו מאמן למשבצת (או הקישו על מאמן ואז על המשבצת). כל שינוי מתפרסם <b>מיד לכל מי שצופה בלינק</b>."
+    : "👁️ <b>מצב צפייה</b>. כדי לשבץ מאמנים ולפרסם לכולם — לחצו \"כניסה למצב עריכה\".";
+  if(on) setSync("ok","🔓 עריכה — שינויים מתפרסמים"); else adoptIfNewer();
+}
 
 function isFixed(type){ return !!(BRANCHES[type]||{}).fixed; }
 function slotDisplay(slot){
@@ -599,6 +673,7 @@ function zoneAt(x,y){ const el=document.elementFromPoint(x,y); return el?el.clos
 function clearHover(){ document.querySelectorAll(".dropzone.hover").forEach(z=>z.classList.remove("hover")); }
 function onPoolPointerDown(e){
   const chip=e.target.closest("[data-coach]"); if(!chip) return; e.preventDefault();
+  if(!editMode){ requestUnlock(); return; }
   const coach=chip.dataset.coach, sx=e.clientX, sy=e.clientY; let ghost=null, moved=false;
   function move(ev){
     const dx=ev.clientX-sx, dy=ev.clientY-sy;
@@ -616,13 +691,14 @@ function onPoolPointerDown(e){
   document.addEventListener("pointermove",move); document.addEventListener("pointerup",up);
 }
 function onPlanClick(e){
+  if(!editMode) return;
   const x=e.target.closest(".xrem");
   if(x){ e.stopPropagation(); removeCoach(+x.dataset.di,+x.dataset.si,x.dataset.coach); return; }
   const z=e.target.closest(".dropzone");
   if(z && selCoach){ assignCoach(+z.dataset.di,+z.dataset.si,selCoach); selCoach=null; }
 }
-function onPlanChange(e){ const s=e.target.closest(".branchSel"); if(s) setBranch(+s.dataset.di,+s.dataset.si,s.value); }
-function onPlanInput(e){ const n=e.target.closest(".pnote"); if(n) setNote(+n.dataset.di,+n.dataset.si,n.value); }
+function onPlanChange(e){ if(!editMode) return; const s=e.target.closest(".branchSel"); if(s) setBranch(+s.dataset.di,+s.dataset.si,s.value); }
+function onPlanInput(e){ if(!editMode) return; const n=e.target.closest(".pnote"); if(n) setNote(+n.dataset.di,+n.dataset.si,n.value); }
 
 /* ---- מתג תצוגה ---- */
 let view="kids";
@@ -679,13 +755,16 @@ function init(){
   document.getElementById("demoDay").onchange=onDemoChange;
   document.getElementById("demoTime").oninput=onDemoChange;
   document.getElementById("btnReset").onclick=resetSchedule;
+  document.getElementById("btnEdit").onclick=()=>{ if(editMode) setEdit(false); else requestUnlock(); };
   document.getElementById("pool").addEventListener("pointerdown",onPoolPointerDown);
   const pd=document.getElementById("planDays");
   pd.addEventListener("click",onPlanClick);
   pd.addEventListener("change",onPlanChange);
   pd.addEventListener("input",onPlanInput);
-  renderAll(); setView(v);
+  renderAll(); setView(v); setEdit(false);
+  adoptIfNewer();                                   // משיכת השיבוץ המשותף מהענן
   setInterval(()=>{ if(!demo && view!=="plan") renderAll(); },1000*20);
+  setInterval(adoptIfNewer, 1000*25);               // עדכון מהענן כל 25 שניות
 }
 document.addEventListener("DOMContentLoaded",init);
 </script>

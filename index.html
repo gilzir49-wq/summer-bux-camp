@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0d1410">
+<title>מחנה סאמר BOX · לוז חי</title>
+<style>
+/* ===================== עיצוב — צבעי המותג של BUX ===================== */
+:root{
+  --bg:#0d1410; --bg2:#13201a; --card:#16241c; --card2:#1d3026;
+  --txt:#f3f7f3; --muted:#9db3a4; --line:#244233;
+  --green:#1F5D24; --green-lite:#2e8b3d;  /* ירוק BUX */
+  --gold:#F1C93B; --gold-deep:#d9ad1f;     /* זהב BUX */
+  --accent:#F1C93B;
+  --radius:18px; --shadow:0 8px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Heebo","Assistant",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  background:radial-gradient(1100px 560px at 100% -8%,#16331f 0,var(--bg) 55%);
+  color:var(--txt); line-height:1.45; min-height:100vh; padding-bottom:40px;
+}
+.wrap{max-width:760px;margin:0 auto;padding:14px}
+/* כותרת */
+header.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px;border-radius:var(--radius);
+  background:linear-gradient(135deg,var(--green),#0e1c12);box-shadow:var(--shadow);
+  border:1px solid var(--line);position:relative;overflow:hidden
+}
+header.top::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--gold),var(--green-lite));height:5px}
+.brand h1{margin:0;font-size:22px;font-weight:900;letter-spacing:-.5px}
+.brand h1 b{color:var(--gold)}
+.brand .sub{color:#cfe6d6;font-size:13px;margin-top:3px}
+.clock{text-align:left;min-width:96px}
+.clock .time{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--gold)}
+.clock .date{font-size:12px;color:#cfe6d6}
+.demo-on .clock .time{color:#fff}
+
+/* מתג תצוגה */
+.viewtoggle{display:flex;background:var(--bg2);border:1px solid var(--line);
+  border-radius:999px;padding:5px;margin:14px 0;gap:5px}
+.viewtoggle button{flex:1;border:0;background:transparent;color:var(--muted);
+  font:inherit;font-weight:800;font-size:14px;padding:11px 6px;border-radius:999px;cursor:pointer;transition:.15s}
+.viewtoggle button.active{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#1a1400;box-shadow:0 4px 14px rgba(241,201,59,.3)}
+
+/* פאנל "עכשיו / הבא" */
+.hero{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:14px}
+.hero .now{padding:20px;position:relative}
+.hero .now .tag{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;opacity:.9;display:flex;align-items:center;gap:7px}
+.hero .now .tag .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.hero .now .title{font-size:29px;font-weight:900;margin:6px 0 2px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero .now .title .emoji{font-size:34px}
+.hero .now .who{font-size:16px;font-weight:700;opacity:.95}
+.hero .now .note{font-size:14px;opacity:.9;margin-top:4px}
+.hero .now .countdown{position:absolute;left:18px;top:18px;background:rgba(0,0,0,.32);
+  border-radius:12px;padding:8px 12px;text-align:center;backdrop-filter:blur(4px)}
+.hero .now .countdown b{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;display:block}
+.hero .now .countdown span{font-size:11px;opacity:.85}
+.hero .progress{height:6px;background:rgba(255,255,255,.18)}
+.hero .progress i{display:block;height:100%;background:var(--gold);width:0%}
+.hero .next{padding:13px 20px;background:rgba(0,0,0,.28);display:flex;align-items:center;gap:10px;font-size:15px}
+.hero .next .lbl{color:var(--gold);font-weight:800;font-size:13px}
+.hero .next .emoji{font-size:20px}
+.hero.idle{background:var(--card)}
+.hero.idle .now .title{font-size:23px}
+
+/* כפתורים */
+.actions{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.btn{flex:1;min-width:140px;border:1px solid var(--line);background:var(--card);color:var(--txt);
+  font:inherit;font-weight:800;font-size:15px;padding:13px;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#1a1400;border:0}
+.btn.demo.on{background:var(--green-lite);color:#fff;border:0}
+.btn.danger{border-color:#7f2d1d;color:#fca5a5}
+
+/* פאנל הדגמה */
+.demobox{display:none;background:var(--bg2);border:1px dashed var(--gold);border-radius:14px;padding:14px;margin-bottom:14px}
+.demobox.show{display:block}
+.demobox h3{margin:0 0 10px;font-size:14px;color:var(--gold);display:flex;align-items:center;gap:6px}
+.demobox .row{display:flex;gap:10px;flex-wrap:wrap}
+.demobox label{flex:1;min-width:140px;font-size:13px;color:var(--muted);display:block}
+.demobox select,.demobox input[type=time]{width:100%;margin-top:5px;background:var(--card);color:var(--txt);
+  border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;font-size:15px}
+.demobox .hint{font-size:12px;color:var(--muted);margin-top:9px}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.legend .chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700}
+.legend .chip i{width:11px;height:11px;border-radius:50%}
+
+/* לוז יומי */
+.day{margin-bottom:14px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.day.today{border-color:var(--gold);box-shadow:0 0 0 2px rgba(241,201,59,.25)}
+.day .dhead{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--card2);cursor:pointer}
+.day .dhead .dl{display:flex;align-items:center;gap:10px}
+.day .dhead .num{width:30px;height:30px;border-radius:9px;background:var(--bg);display:grid;place-items:center;font-weight:900;font-size:14px;color:var(--gold)}
+.day .dhead .dn{font-weight:900;font-size:16px}
+.day .dhead .dd{font-size:12px;color:var(--muted)}
+.day .dhead .badge{font-size:11px;font-weight:900;background:var(--gold);color:#1a1400;border-radius:999px;padding:3px 9px}
+.day .dhead .wk{font-size:11px;color:var(--green-lite);font-weight:800}
+.day .dhead .chev{color:var(--muted);font-size:13px;transition:.2s}
+.day.collapsed .chev{transform:rotate(-90deg)}
+.day.collapsed .slots{display:none}
+.slots{padding:10px}
+.slot{display:flex;gap:12px;padding:11px;border-radius:12px;margin:6px 0;background:var(--bg2);border-right:5px solid var(--line);align-items:flex-start}
+.slot.live{background:linear-gradient(90deg,rgba(241,201,59,.16),var(--bg2));box-shadow:0 0 0 1px var(--gold) inset}
+.slot.fixed{opacity:.72;background:transparent;border-right-style:dashed}
+.slot .em{font-size:25px;line-height:1.2;flex-shrink:0}
+.slot .body{flex:1;min-width:0}
+.slot .t{font-size:12px;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums}
+.slot .ti{font-size:16px;font-weight:800;margin-top:1px}
+.slot .wh{font-size:13.5px;color:var(--muted);margin-top:2px}
+.slot .wh.empty{color:var(--gold)}
+.slot .nt{font-size:13px;color:#dceae0;margin-top:4px;background:rgba(255,255,255,.05);border-radius:8px;padding:6px 9px}
+.slot .livetag{font-size:11px;font-weight:900;color:var(--gold);margin-right:6px}
+/* תצוגת ילדים/הורים: גדול ופשוט */
+body.view-kids .slot.fixed{display:none}
+body.view-kids .slot .em{font-size:36px}
+body.view-kids .slot .ti{font-size:20px}
+body.view-kids .slot .nt{display:none}
+body.view-kids .slot .wh{font-size:15px}
+body.view-kids .slot .t{font-size:13px}
+
+/* צוות */
+.staff{margin-top:20px}
+.staff h2{font-size:18px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.staff .grid{display:grid;grid-template-columns:1fr;gap:8px}
+.staff .scard{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.staff .scard .em{font-size:24px}
+.staff .scard .nm{font-weight:900;font-size:15px}
+.staff .scard .br{font-size:13px;color:var(--muted)}
+.staff-only{display:none}
+body.view-staff .staff-only{display:block}
+
+/* ===== מצב סידור (Planner) ===== */
+#planSection{display:none}
+body.view-plan #planSection{display:block}
+body.view-plan #liveSection{display:none}
+.planintro{font-size:13px;color:#dceae0;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:12px;line-height:1.6}
+.planbar{display:flex;gap:10px;margin-bottom:10px}
+.savehint{font-size:12px;color:var(--green-lite);text-align:center;margin-bottom:10px;height:16px;transition:.3s;font-weight:800}
+.pool{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--bg) 72%,rgba(13,20,16,0));
+  padding:10px 0 14px;margin-bottom:6px}
+.pool .pt{font-size:12px;font-weight:900;color:var(--gold);letter-spacing:.5px;margin:0 2px 8px}
+.pool .coaches{display:flex;flex-wrap:wrap;gap:8px}
+.coach{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);
+  border-radius:999px;padding:9px 13px;font-weight:800;font-size:14px;cursor:grab;
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.coach:active{cursor:grabbing}
+.coach.sel{outline:2px solid var(--gold);background:#26402c;box-shadow:0 0 0 3px rgba(241,201,59,.2)}
+.coach .em{font-size:18px}
+.pday{margin-bottom:12px;border-radius:var(--radius);border:1px solid var(--line);background:var(--card);overflow:hidden}
+.pday.today{border-color:var(--gold)}
+.pday .ph{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2)}
+.pday .ph .num{width:28px;height:28px;border-radius:8px;background:var(--bg);display:grid;place-items:center;font-weight:900;font-size:13px;color:var(--gold)}
+.pday .ph .dn{font-weight:900;font-size:15px}
+.pday .ph .wk{font-size:11px;color:var(--green-lite);font-weight:800}
+.pday .ph .badge{font-size:11px;font-weight:900;background:var(--gold);color:#1a1400;border-radius:999px;padding:3px 9px;margin-right:auto}
+.pbody{padding:10px}
+.punit{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px;margin:7px 0;border-right:5px solid var(--line)}
+.punit.fixed{opacity:.7;border-right-style:dashed;padding:9px 11px}
+.punit .uhead{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.punit.fixed .uhead{margin-bottom:0}
+.punit .utime{font-size:12px;color:var(--muted);font-weight:900;font-variant-numeric:tabular-nums}
+.punit .ulabel{font-weight:900;font-size:14px}
+.punit select{margin-right:auto;background:var(--card);color:var(--txt);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;font-weight:700;max-width:60%}
+.dropzone{min-height:50px;border:2px dashed var(--line);border-radius:11px;padding:8px;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;transition:.12s;cursor:pointer}
+.dropzone.hover{border-color:var(--gold);background:rgba(241,201,59,.14);transform:scale(1.01)}
+.dropzone .ph2{color:var(--muted);font-size:13px;padding:2px 4px}
+.assigned{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green-lite),var(--green));
+  color:#fff;border-radius:999px;padding:7px 8px 7px 11px;font-weight:800;font-size:13px}
+.assigned .xrem{border:0;background:rgba(0,0,0,.3);color:#fff;border-radius:50%;width:19px;height:19px;
+  cursor:pointer;font-size:12px;line-height:1;display:grid;place-items:center;padding:0}
+.pnote{width:100%;margin-top:8px;background:var(--card);color:var(--txt);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;font:inherit;font-size:13px}
+.pnote::placeholder{color:var(--muted)}
+.ghost{position:fixed;z-index:9999;pointer-events:none;background:linear-gradient(135deg,var(--green-lite),var(--green));
+  color:#fff;border-radius:999px;padding:9px 14px;font-weight:800;font-size:14px;
+  box-shadow:0 12px 34px rgba(0,0,0,.6);transform:translate(-50%,-50%);opacity:.96;display:flex;gap:6px;align-items:center}
+
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px;line-height:1.7}
+footer b{color:var(--gold)}
+.section-title{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:.5px;margin:6px 2px 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============================================================= -->
+<!--  לעריכה קלה: כל המידע נמצא בבלוק <script id="DATA"> למטה.       -->
+<!--  אפשר לערוך טקסט/שעות/מאמנים שם — או לשבץ מאמנים בגרירה          -->
+<!--  בתוך טאב "סידור" באפליקציה (נשמר אוטומטית במכשיר).            -->
+<!-- ============================================================= -->
+
+<header class="top">
+  <div class="brand">
+    <h1 id="campName"></h1>
+    <div class="sub" id="campSub"></div>
+  </div>
+  <div class="clock">
+    <div class="time" id="clockTime">--:--</div>
+    <div class="date" id="clockDate"></div>
+  </div>
+</header>
+
+<div class="viewtoggle">
+  <button id="btnKids">🧒 ילדים והורים</button>
+  <button id="btnStaff">📋 צוות</button>
+  <button id="btnPlan">📝 סידור</button>
+</div>
+
+<!-- ===== מצב חי ===== -->
+<div id="liveSection">
+  <div id="hero"></div>
+
+  <div class="actions">
+    <button class="btn primary" id="btnToday">📅 קפיצה להיום</button>
+    <button class="btn demo" id="btnDemo">🎬 מצב הדגמה</button>
+  </div>
+
+  <div class="demobox" id="demoBox">
+    <h3>🎬 הדגמה — בחרו יום ושעה לראות איך העמוד ייראה</h3>
+    <div class="row">
+      <label>יום
+        <select id="demoDay"></select>
+      </label>
+      <label>שעה
+        <input type="time" id="demoTime" value="11:50">
+      </label>
+    </div>
+    <div class="hint">השעון למעלה יקפוץ לזמן שבחרתם. לחצו שוב על "מצב הדגמה" כדי לחזור לזמן אמת.</div>
+  </div>
+
+  <div class="section-title">ענפים</div>
+  <div class="legend" id="legend"></div>
+
+  <div class="section-title">לוז מלא</div>
+  <div id="schedule"></div>
+
+  <div class="staff staff-only">
+    <h2>👥 צוות המדריכים</h2>
+    <div class="grid" id="staffGrid"></div>
+  </div>
+</div>
+
+<!-- ===== מצב סידור ===== -->
+<div id="planSection">
+  <div class="planintro">
+    🟡 <b>גררו מאמן</b> מהמאגר אל משבצת — או <b>הקישו על מאמן</b> ואז על המשבצת (נוח בטלפון).<br>
+    אפשר לבחור ענף לכל משבצת, להוסיף כמה מאמנים, ולכתוב הערה. הכל נשמר אוטומטית במכשיר.
+  </div>
+  <div class="pool">
+    <div class="pt">מאגר מאמנים — קחו וגררו 👇</div>
+    <div class="coaches" id="pool"></div>
+  </div>
+  <div class="savehint" id="saveHint"></div>
+  <div id="planDays"></div>
+  <div class="planbar">
+    <button class="btn danger" id="btnReset">🔄 איפוס לברירת מחדל</button>
+  </div>
+</div>
+
+<footer>
+  <b>מחנה סאמר BOX</b> · לוז חי 🔴 מתעדכן אוטומטית<br>
+  שמרו את הלינק במסך הבית של הטלפון לגישה מהירה.
+</footer>
+</div>
+
+<!-- ============================================================= -->
+<!-- ===============   הנתונים לעריכה   ============================ -->
+<!-- ============================================================= -->
+<script id="DATA">
+/* ----- פרטי המחנה ----- */
+const CAMP = {
+  name:  'מחנה סאמר <b>BOX</b>',
+  dates: "5–16.7 · ימים א׳–ה׳ · שבועיים",
+  hours: "10:00–14:00"
+};
+
+/* ----- מילון הענפים: שם + צבע + אמוג'י ----- */
+/* fixed=true => משבצת קבועה (שיחת בוקר/אוכל/התארגנות) שלא משבצים בה בגרירה */
+const BRANCHES = {
+  talk:         { name:"שיחת בוקר",            emoji:"💬", color:"#3aa657" },
+  yoga:         { name:"יוגה ועמידות ידיים",   emoji:"🧘‍♀️", color:"#6366f1" },
+  mobility:     { name:"מוביליטי",             emoji:"🧘", color:"#14b8a6" },
+  gymnastics:   { name:"גימנסטיק",             emoji:"🤸", color:"#a855f7" },
+  crossfit:     { name:"קרוספיט",              emoji:"🏋️", color:"#ef4444" },
+  weightlifting:{ name:"הרמת משקולות",         emoji:"🏋️‍♂️", color:"#f97316" },
+  bodybuilding: { name:"בודי בילדינג",         emoji:"💪", color:"#ec4899" },
+  bjj:          { name:"ג'יוג'יטסו",            emoji:"🥋", color:"#b45309" },
+  krav:         { name:"קרב מגע",              emoji:"🥊", color:"#64748b" },
+  icebreath:    { name:"נשימות וקרח",          emoji:"❄️", color:"#06b6d4" },
+  bbq:          { name:"על האש",               emoji:"🔥", color:"#f59e0b" },
+  nutrition:    { name:"תזונה",                emoji:"🥗", color:"#22c55e" },
+  breakfast:    { name:"ארוחת בוקר והתארגנות", emoji:"🥪", color:"#8d6e63", fixed:true },
+  transition:   { name:"התארגנות",             emoji:"🔄", color:"#78716c", fixed:true }
+};
+/* ענפים שניתן לבחור בסידור (ללא הקבועים) */
+const PICKABLE = ["talk","yoga","mobility","gymnastics","crossfit","weightlifting","bodybuilding","bjj","krav","icebreath","bbq","nutrition"];
+
+/* ----- מבנה יום לכל יום בשבוע (חוזר על עצמו בשני השבועות) ----- */
+/* s=שעת התחלה, e=שעת סיום. type=ענף. coaches=מאמנים. title=שם מותאם (אופציונלי). */
+const WEEKDAY = {
+  sun:[ /* ראשון */
+    { s:"10:00", e:"10:15", type:"talk",       coaches:["שיר"] },
+    { s:"10:15", e:"11:15", type:"yoga",       coaches:["שקד"] },
+    { s:"11:15", e:"11:45", type:"breakfast" },
+    { s:"11:45", e:"12:45", type:"gymnastics", coaches:["שיר"] },
+    { s:"12:45", e:"13:00", type:"transition" },
+    { s:"13:00", e:"14:00", type:"nutrition",  coaches:["גיא"] }
+  ],
+  mon:[ /* שני */
+    { s:"10:00", e:"10:15", type:"talk",     coaches:["שיר"] },
+    { s:"10:15", e:"11:15", type:"mobility", coaches:["רחל"] },
+    { s:"11:15", e:"11:45", type:"breakfast" },
+    { s:"11:45", e:"12:45", type:"crossfit", coaches:["רון דרין"] },
+    { s:"12:45", e:"14:00", type:"bjj", title:"ג'יוג'יטסו / קרב מגע", coaches:["רון כהן"] }
+  ],
+  tue:[ /* שלישי */
+    { s:"10:00", e:"10:15", type:"talk",         coaches:["שיר"] },
+    { s:"10:15", e:"11:15", type:"mobility",     coaches:["רחל"] },
+    { s:"11:15", e:"11:45", type:"breakfast" },
+    { s:"11:45", e:"12:45", type:"bodybuilding", coaches:["עדי גווילי"] },
+    { s:"12:45", e:"13:00", type:"transition" },
+    { s:"13:00", e:"14:00", type:"krav",         coaches:["יהודה"] }
+  ],
+  wed:[ /* רביעי */
+    { s:"10:00", e:"10:15", type:"talk",          coaches:["שיר"] },
+    { s:"10:15", e:"11:15", type:"mobility",      coaches:["רחל"] },
+    { s:"11:15", e:"11:45", type:"breakfast" },
+    { s:"11:45", e:"12:45", type:"weightlifting", coaches:["נדב"] },
+    { s:"12:45", e:"14:00", type:"icebreath",     coaches:["אורי מגנזי"] }
+  ],
+  thu:[ /* חמישי */
+    { s:"10:00", e:"10:15", type:"talk",     coaches:["שיר"] },
+    { s:"10:15", e:"11:15", type:"yoga",     coaches:["שקד"] },
+    { s:"11:15", e:"11:45", type:"breakfast" },
+    { s:"11:45", e:"12:45", type:"crossfit", coaches:["יוגב מלר"] },
+    { s:"12:45", e:"14:00", type:"bbq",      coaches:["גל"] }
+  ]
+};
+
+/* ----- מיפוי התאריכים לימי המחנה ----- */
+const DATE_MAP = [
+  { date:"2026-07-05", dayName:"ראשון", short:"5.7",  week:1, tpl:"sun" },
+  { date:"2026-07-06", dayName:"שני",   short:"6.7",  week:1, tpl:"mon" },
+  { date:"2026-07-07", dayName:"שלישי", short:"7.7",  week:1, tpl:"tue" },
+  { date:"2026-07-08", dayName:"רביעי", short:"8.7",  week:1, tpl:"wed" },
+  { date:"2026-07-09", dayName:"חמישי", short:"9.7",  week:1, tpl:"thu" },
+  { date:"2026-07-12", dayName:"ראשון", short:"12.7", week:2, tpl:"sun" },
+  { date:"2026-07-13", dayName:"שני",   short:"13.7", week:2, tpl:"mon" },
+  { date:"2026-07-14", dayName:"שלישי", short:"14.7", week:2, tpl:"tue" },
+  { date:"2026-07-15", dayName:"רביעי", short:"15.7", week:2, tpl:"wed" },
+  { date:"2026-07-16", dayName:"חמישי", short:"16.7", week:2, tpl:"thu" }
+];
+
+/* ----- מאגר המאמנים (לגרירה + כרטיסיית צוות) ----- */
+const STAFF = [
+  { name:"שיר",        role:"קרוספיט, גימנסטיק ושיחות בוקר", type:"gymnastics" },
+  { name:"שקד",        role:"יוגה ועמידות ידיים",            type:"yoga" },
+  { name:"רחל",        role:"מוביליטי ונשימות וקרח",         type:"mobility" },
+  { name:"נדב",        role:"הרמת משקולות",                  type:"weightlifting" },
+  { name:"עדי גווילי", role:"בודי בילדינג וקרוספיט",         type:"bodybuilding" },
+  { name:"רון דרין",   role:"קרוספיט",                       type:"crossfit" },
+  { name:"יוגב מלר",   role:"קרוספיט תחרותי / מקצועי",       type:"crossfit" },
+  { name:"גיא",        role:"תזונה",                         type:"nutrition" },
+  { name:"רון כהן",    role:"ג'יוג'יטסו וקרב מגע",            type:"bjj" },
+  { name:"יהודה",      role:"קרב מגע",                       type:"krav" },
+  { name:"גל",         role:"על האש",                        type:"bbq" },
+  { name:"אורי מגנזי", role:"נשימות וקרח",                   type:"icebreath" }
+];
+</script>
+
+<!-- ============================================================= -->
+<!-- ===============   הלוגיקה (אין צורך לגעת)   =================== -->
+<!-- ============================================================= -->
+<script>
+const pad = n => String(n).padStart(2,"0");
+const toMin = hhmm => { const [h,m]=hhmm.split(":").map(Number); return h*60+m; };
+const fmtMin = m => pad(Math.floor(m/60))+":"+pad(m%60);
+const HE_DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+const SAVE_KEY = "boxcamp_sched_v3";
+
+/* ---- בניית לוז ניתן לעריכה ---- */
+function cloneSlots(arr){
+  return arr.map(s=>({ s:s.s, e:s.e, type:s.type, title:s.title||"", coaches:(s.coaches||[]).slice(), note:s.note||"" }));
+}
+function defaultSchedule(){
+  return DATE_MAP.map(d=>({ date:d.date, dayName:d.dayName, short:d.short, week:d.week, slots:cloneSlots(WEEKDAY[d.tpl]) }));
+}
+function loadSchedule(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return defaultSchedule();
+    const saved=JSON.parse(raw); const def=defaultSchedule();
+    return def.map(d=>{ const m=saved.find(s=>s.date===d.date); return (m&&Array.isArray(m.slots))?{...d,slots:m.slots}:d; });
+  }catch(e){ return defaultSchedule(); }
+}
+let SCHED = loadSchedule();
+function saveSchedule(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(SCHED)); }catch(e){} flashSaved(); }
+function flashSaved(){ const h=document.getElementById("saveHint"); h.textContent="✓ נשמר"; clearTimeout(flashSaved._t); flashSaved._t=setTimeout(()=>h.textContent="",1400); }
+
+function isFixed(type){ return !!(BRANCHES[type]||{}).fixed; }
+function slotDisplay(slot){
+  const br=BRANCHES[slot.type]||{};
+  return { title:slot.title||br.name||"", who:(slot.coaches||[]).join(" + "), note:slot.note||"",
+           emoji:br.emoji||"⭐", color:br.color||"#888", type:slot.type, fixed:isFixed(slot.type) };
+}
+function findDay(dateStr){ return SCHED.find(d=>d.date===dateStr)||null; }
+
+/* ---- מצב הדגמה ---- */
+let demo=false, demoDate=DATE_MAP[0].date, demoMin=toMin("11:50");
+function getNow(){
+  if(demo) return { dateStr:demoDate, min:demoMin };
+  const d=new Date();
+  return { dateStr:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, min:d.getHours()*60+d.getMinutes() };
+}
+
+/* ---- שעון ---- */
+function renderClock(){
+  const now=getNow();
+  document.getElementById("clockTime").textContent=fmtMin(now.min);
+  const day=findDay(now.dateStr);
+  let label;
+  if(demo){ label= day?`הדגמה · ${day.dayName} ${day.short}`:"הדגמה"; }
+  else { const d=new Date(); label=`יום ${HE_DAYS[d.getDay()]} · ${d.getDate()}.${d.getMonth()+1}`; }
+  document.getElementById("clockDate").textContent=label;
+}
+
+/* ---- עזר צבע ---- */
+function shade(hex,p){
+  const n=parseInt(hex.slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r=Math.max(0,Math.min(255,r+Math.round(255*p/100)));
+  g=Math.max(0,Math.min(255,g+Math.round(255*p/100)));
+  b=Math.max(0,Math.min(255,b+Math.round(255*p/100)));
+  const h=v=>v.toString(16).padStart(2,"0"); return "#"+h(r)+h(g)+h(b);
+}
+
+/* ---- פאנל עכשיו/הבא ---- */
+function renderHero(){
+  const now=getNow(), day=findDay(now.dateStr), hero=document.getElementById("hero");
+  if(!day){
+    hero.className="hero idle";
+    hero.innerHTML=`<div class="now"><div class="tag">אין אימון היום</div>
+      <div class="title">😴 יום חופש מהמחנה</div>
+      <div class="note">היום אינו אחד מימי המחנה. הציצו בלוז המלא למטה.</div></div>`;
+    return;
+  }
+  const slots=day.slots, first=toMin(slots[0].s), last=toMin(slots[slots.length-1].e);
+  let cur=-1;
+  for(let i=0;i<slots.length;i++){ if(now.min>=toMin(slots[i].s)&&now.min<toMin(slots[i].e)){cur=i;break;} }
+
+  if(now.min<first){
+    const nx=slotDisplay(slots[0]); hero.className="hero idle";
+    hero.innerHTML=`<div class="now"><div class="tag">המחנה עוד לא התחיל</div>
+      <div class="title">⏰ נתראה ב-${slots[0].s}</div>
+      <div class="note">${day.dayName} ${day.short} · פותחים ב${nx.title}</div></div>
+      <div class="next"><span class="lbl">ראשון בתור:</span> <span class="emoji">${nx.emoji}</span> ${nx.title}</div>`;
+    return;
+  }
+  if(now.min>=last){
+    hero.className="hero idle";
+    hero.innerHTML=`<div class="now"><div class="tag">סיימנו להיום</div>
+      <div class="title">✅ כל הכבוד! נתראה מחר</div>
+      <div class="note">${day.dayName} ${day.short} הסתיים. נתראה מחר ב-${slots[0].s}.</div></div>`;
+    return;
+  }
+  const slot=slots[cur], info=slotDisplay(slot);
+  const st=toMin(slot.s), en=toMin(slot.e), left=en-now.min;
+  const prog=Math.min(100,Math.max(0,((now.min-st)/(en-st))*100));
+  let nextHTML="";
+  if(cur<slots.length-1){
+    const nx=slotDisplay(slots[cur+1]);
+    nextHTML=`<div class="next"><span class="lbl">הבא בתור (${slots[cur+1].s}):</span> <span class="emoji">${nx.emoji}</span> ${nx.title}${nx.who?` · ${nx.who}`:""}</div>`;
+  } else nextHTML=`<div class="next"><span class="lbl">אחרי זה:</span> 🏁 שחרור וסיום היום</div>`;
+  const bg=`linear-gradient(135deg, ${info.color}, ${shade(info.color,-28)})`;
+  hero.className="hero";
+  hero.innerHTML=`
+    <div class="now" style="background:${bg}">
+      <div class="countdown"><b>${left}</b><span>דק׳ נותרו</span></div>
+      <div class="tag"><span class="dot"></span> קורה עכשיו · ${slot.s}–${slot.e}</div>
+      <div class="title"><span class="emoji">${info.emoji}</span> ${info.title}</div>
+      ${info.who?`<div class="who">👤 ${info.who}</div>`:(info.fixed?"":`<div class="who">👤 לא שובץ מאמן</div>`)}
+      ${info.note?`<div class="note">📝 ${info.note}</div>`:""}
+    </div>
+    <div class="progress"><i style="width:${prog}%"></i></div>
+    ${nextHTML}`;
+}
+
+/* ---- legend ---- */
+function renderLegend(){
+  const used=new Set();
+  SCHED.forEach(d=>d.slots.forEach(s=>{ if(!isFixed(s.type)) used.add(s.type); }));
+  document.getElementById("legend").innerHTML=[...used].map(t=>{
+    const b=BRANCHES[t]; if(!b) return "";
+    return `<span class="chip"><i style="background:${b.color}"></i>${b.emoji} ${b.name}</span>`;
+  }).join("");
+}
+
+/* ---- לוז מלא ---- */
+function renderSchedule(){
+  const now=getNow();
+  document.getElementById("schedule").innerHTML=SCHED.map((day,di)=>{
+    const isToday=day.date===now.dateStr;
+    const slotsHTML=day.slots.map(slot=>{
+      const info=slotDisplay(slot);
+      const live=isToday&&now.min>=toMin(slot.s)&&now.min<toMin(slot.e);
+      const whoHTML=info.fixed?"":(info.who?`<div class="wh">👤 ${info.who}</div>`:`<div class="wh empty">👤 טרם שובץ</div>`);
+      return `<div class="slot ${live?'live':''} ${info.fixed?'fixed':''}" style="border-right-color:${info.color}">
+        <div class="em">${info.emoji}</div>
+        <div class="body">
+          <div class="t">${slot.s}–${slot.e}${live?'<span class="livetag">● עכשיו</span>':''}</div>
+          <div class="ti">${info.title}</div>
+          ${whoHTML}
+          ${info.note?`<div class="nt">📝 ${info.note}</div>`:""}
+        </div></div>`;
+    }).join("");
+    const main=day.slots.filter(s=>!isFixed(s.type)).map(s=>(BRANCHES[s.type]||{}).name).slice(0,3).join(" · ");
+    const collapsed=isToday?"":"collapsed";
+    return `<div class="day ${isToday?'today':''} ${collapsed}" id="day-${di}">
+      <div class="dhead" onclick="this.parentNode.classList.toggle('collapsed')">
+        <div class="dl"><div class="num">${di+1}</div>
+          <div><div class="dn">${day.dayName} ${day.short} <span class="wk">· שבוע ${day.week}</span></div>
+          <div class="dd">${main}</div></div></div>
+        <div class="dl">${isToday?'<span class="badge">היום</span>':''}<span class="chev">▼</span></div>
+      </div>
+      <div class="slots">${slotsHTML}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ---- כרטיסיית צוות ---- */
+function renderStaff(){
+  document.getElementById("staffGrid").innerHTML=STAFF.map(s=>{
+    const b=BRANCHES[s.type]||{};
+    return `<div class="scard"><div class="em">${b.emoji||'⭐'}</div>
+      <div><div class="nm">${s.name}</div><div class="br">${s.role}</div></div></div>`;
+  }).join("");
+}
+
+/* ============== מצב סידור ============== */
+let selCoach=null;
+function coachEmoji(name){ const s=STAFF.find(x=>x.name===name); return s?(BRANCHES[s.type]||{}).emoji||"⭐":"⭐"; }
+function renderPool(){
+  document.getElementById("pool").innerHTML=STAFF.map(s=>{
+    const b=BRANCHES[s.type]||{}; const on=selCoach===s.name?"sel":"";
+    return `<div class="coach ${on}" data-coach="${s.name}"><span class="em">${b.emoji||'⭐'}</span>${s.name}</div>`;
+  }).join("");
+}
+function renderPlanner(){
+  const now=getNow();
+  renderPool();
+  document.getElementById("planDays").innerHTML=SCHED.map((day,di)=>{
+    const isToday=day.date===now.dateStr;
+    const units=day.slots.map((slot,si)=>{
+      const br=BRANCHES[slot.type]||{}; const info=slotDisplay(slot);
+      if(info.fixed){
+        return `<div class="punit fixed" style="border-right-color:${br.color||'#888'}">
+          <div class="uhead"><span class="utime">${slot.s}–${slot.e}</span><span class="ulabel">${br.emoji} ${info.title}</span></div>
+        </div>`;
+      }
+      const chips=(slot.coaches&&slot.coaches.length)
+        ? slot.coaches.map(c=>`<span class="assigned"><span>${coachEmoji(c)} ${c}</span><button class="xrem" data-di="${di}" data-si="${si}" data-coach="${c}" title="הסר">✕</button></span>`).join("")
+        : `<span class="ph2">גררו מאמן לכאן או הקישו 👆</span>`;
+      const opts=PICKABLE.map(t=>`<option value="${t}" ${t===slot.type?'selected':''}>${BRANCHES[t].emoji} ${BRANCHES[t].name}</option>`).join("");
+      return `<div class="punit" style="border-right-color:${br.color||'#888'}">
+        <div class="uhead">
+          <span class="utime">${slot.s}–${slot.e}</span>
+          <select data-di="${di}" data-si="${si}" class="branchSel">${opts}</select>
+        </div>
+        <div class="dropzone" data-di="${di}" data-si="${si}">${chips}</div>
+        <input class="pnote" data-di="${di}" data-si="${si}" placeholder="הערה (אופציונלי)" value="${(slot.note||'').replace(/"/g,'&quot;')}">
+      </div>`;
+    }).join("");
+    return `<div class="pday ${isToday?'today':''}">
+      <div class="ph"><div class="num">${di+1}</div>
+        <div class="dn">${day.dayName} ${day.short} <span class="wk">· שבוע ${day.week}</span></div>
+        ${isToday?'<span class="badge">היום</span>':''}</div>
+      <div class="pbody">${units}</div>
+    </div>`;
+  }).join("");
+}
+
+/* פעולות שיבוץ (לפי אינדקס יום + אינדקס משבצת) */
+function assignCoach(di,si,coach){ const u=SCHED[di].slots[si]; if(!u.coaches.includes(coach)) u.coaches.push(coach); saveSchedule(); renderPlanner(); }
+function removeCoach(di,si,coach){ const u=SCHED[di].slots[si]; u.coaches=u.coaches.filter(c=>c!==coach); saveSchedule(); renderPlanner(); }
+function setBranch(di,si,type){ const u=SCHED[di].slots[si]; u.type=type; u.title=""; saveSchedule(); renderPlanner(); }
+function setNote(di,si,val){ SCHED[di].slots[si].note=val; saveSchedule(); }
+
+/* גרירה (עכבר+מגע) */
+function zoneAt(x,y){ const el=document.elementFromPoint(x,y); return el?el.closest(".dropzone"):null; }
+function clearHover(){ document.querySelectorAll(".dropzone.hover").forEach(z=>z.classList.remove("hover")); }
+function onPoolPointerDown(e){
+  const chip=e.target.closest("[data-coach]"); if(!chip) return; e.preventDefault();
+  const coach=chip.dataset.coach, sx=e.clientX, sy=e.clientY; let ghost=null, moved=false;
+  function move(ev){
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    if(!moved && Math.hypot(dx,dy)>8){ moved=true; ghost=document.createElement("div"); ghost.className="ghost";
+      ghost.innerHTML=`<span>${coachEmoji(coach)}</span>${coach}`; document.body.appendChild(ghost); }
+    if(moved){ ghost.style.left=ev.clientX+"px"; ghost.style.top=ev.clientY+"px";
+      clearHover(); const z=zoneAt(ev.clientX,ev.clientY); if(z) z.classList.add("hover"); }
+  }
+  function up(ev){
+    document.removeEventListener("pointermove",move); document.removeEventListener("pointerup",up);
+    if(moved){ const z=zoneAt(ev.clientX,ev.clientY); if(ghost) ghost.remove(); clearHover();
+      if(z) assignCoach(+z.dataset.di,+z.dataset.si,coach); }
+    else { selCoach=(selCoach===coach)?null:coach; renderPool(); }
+  }
+  document.addEventListener("pointermove",move); document.addEventListener("pointerup",up);
+}
+function onPlanClick(e){
+  const x=e.target.closest(".xrem");
+  if(x){ e.stopPropagation(); removeCoach(+x.dataset.di,+x.dataset.si,x.dataset.coach); return; }
+  const z=e.target.closest(".dropzone");
+  if(z && selCoach){ assignCoach(+z.dataset.di,+z.dataset.si,selCoach); selCoach=null; }
+}
+function onPlanChange(e){ const s=e.target.closest(".branchSel"); if(s) setBranch(+s.dataset.di,+s.dataset.si,s.value); }
+function onPlanInput(e){ const n=e.target.closest(".pnote"); if(n) setNote(+n.dataset.di,+n.dataset.si,n.value); }
+
+/* ---- מתג תצוגה ---- */
+let view="kids";
+function setView(v){
+  view=v;
+  document.body.classList.remove("view-kids","view-staff","view-plan");
+  document.body.classList.add("view-"+v);
+  document.getElementById("btnKids").classList.toggle("active",v==="kids");
+  document.getElementById("btnStaff").classList.toggle("active",v==="staff");
+  document.getElementById("btnPlan").classList.toggle("active",v==="plan");
+  try{ localStorage.setItem("boxcamp_view",v); }catch(e){}
+  if(v==="plan"){ selCoach=null; renderPlanner(); } else { renderLegend(); renderSchedule(); }
+}
+
+/* ---- כפתורים ---- */
+function jumpToday(){
+  const now=getNow(), idx=SCHED.findIndex(d=>d.date===now.dateStr);
+  if(idx<0){ alert("היום אינו אחד מימי המחנה 🙂\nהמחנה: 5–16.7, ימים א׳–ה׳."); return; }
+  const card=document.getElementById("day-"+idx); card.classList.remove("collapsed");
+  card.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function toggleDemo(){
+  demo=!demo;
+  document.body.classList.toggle("demo-on",demo);
+  document.getElementById("btnDemo").classList.toggle("on",demo);
+  document.getElementById("demoBox").classList.toggle("show",demo);
+  document.getElementById("btnDemo").innerHTML=demo?"⏱️ חזרה לזמן אמת":"🎬 מצב הדגמה";
+  renderAll();
+}
+function onDemoChange(){
+  demoDate=document.getElementById("demoDay").value;
+  demoMin=toMin(document.getElementById("demoTime").value||"11:50");
+  renderAll();
+}
+function resetSchedule(){
+  if(!confirm("לאפס את כל השיבוצים חזרה לברירת המחדל?")) return;
+  SCHED=defaultSchedule(); saveSchedule(); renderPlanner(); renderLegend();
+}
+
+/* ---- init ---- */
+function renderAll(){ renderClock(); renderHero(); renderSchedule(); }
+function init(){
+  document.getElementById("campName").innerHTML=CAMP.name;
+  document.getElementById("campSub").textContent=`${CAMP.dates} · ${CAMP.hours}`;
+  document.getElementById("demoDay").innerHTML=DATE_MAP.map(d=>`<option value="${d.date}">${d.dayName} ${d.short} (שבוע ${d.week})</option>`).join("");
+  renderStaff();
+  let v="kids"; try{ v=localStorage.getItem("boxcamp_view")||"kids"; }catch(e){}
+  if(!["kids","staff","plan"].includes(v)) v="kids";
+  document.getElementById("btnKids").onclick=()=>setView("kids");
+  document.getElementById("btnStaff").onclick=()=>setView("staff");
+  document.getElementById("btnPlan").onclick=()=>setView("plan");
+  document.getElementById("btnToday").onclick=jumpToday;
+  document.getElementById("btnDemo").onclick=toggleDemo;
+  document.getElementById("demoDay").onchange=onDemoChange;
+  document.getElementById("demoTime").oninput=onDemoChange;
+  document.getElementById("btnReset").onclick=resetSchedule;
+  document.getElementById("pool").addEventListener("pointerdown",onPoolPointerDown);
+  const pd=document.getElementById("planDays");
+  pd.addEventListener("click",onPlanClick);
+  pd.addEventListener("change",onPlanChange);
+  pd.addEventListener("input",onPlanInput);
+  renderAll(); setView(v);
+  setInterval(()=>{ if(!demo && view!=="plan") renderAll(); },1000*20);
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>

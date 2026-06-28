@@ -336,11 +336,16 @@ const BRANCHES = {
   icebreath:    { name:"נשימות וקרח",          emoji:"❄️", color:"#06b6d4" },
   bbq:          { name:"על האש",               emoji:"🔥", color:"#f59e0b" },
   nutrition:    { name:"תזונה",                emoji:"🥗", color:"#22c55e" },
+  acro:         { name:"אקרובטיקה",            emoji:"🤸‍♂️", color:"#d6409f" },
+  boxing:       { name:"אגרוף",                emoji:"🥊", color:"#475569" },
+  endurance:    { name:"אינדורנס",             emoji:"🏃", color:"#d97706" },
+  video:        { name:"וידאו",                emoji:"🎥", color:"#3b82f6" },
+  mindset:      { name:"הקול בראש",            emoji:"🧠", color:"#8b5cf6" },
   breakfast:    { name:"ארוחת בוקר והתארגנות", emoji:"🥪", color:"#8d6e63", fixed:true },
   transition:   { name:"התארגנות",             emoji:"🔄", color:"#78716c", fixed:true }
 };
 /* ענפים שניתן לבחור בסידור (ללא הקבועים) */
-const PICKABLE = ["talk","yoga","mobility","gymnastics","crossfit","weightlifting","bodybuilding","bjj","krav","icebreath","bbq","nutrition"];
+const PICKABLE = ["talk","yoga","mobility","gymnastics","crossfit","weightlifting","bodybuilding","bjj","krav","icebreath","bbq","nutrition","acro","boxing","endurance","video","mindset"];
 
 /* ----- מבנה יום לכל יום בשבוע (חוזר על עצמו בשני השבועות) ----- */
 /* s=שעת התחלה, e=שעת סיום. type=ענף. coaches=מאמנים. title=שם מותאם (אופציונלי). */
@@ -410,8 +415,11 @@ const STAFF = [
   { name:"גיא",        role:"תזונה",                         type:"nutrition" },
   { name:"רון כהן",    role:"ג'יוג'יטסו וקרב מגע",            type:"bjj" },
   { name:"יהודה",      role:"קרב מגע",                       type:"krav" },
-  { name:"גל",         role:"על האש",                        type:"bbq" },
-  { name:"אורי מגנזי", role:"נשימות וקרח",                   type:"icebreath" }
+  { name:"גל",         role:"על האש, שיחות בוקר ווידאו",      type:"bbq" },
+  { name:"אורי מגנזי", role:"נשימות וקרח, קרוספיט תחרותי",    type:"icebreath" },
+  { name:"דניאל",      role:"וייטליפטינג",                   type:"weightlifting" },
+  { name:"נועם",       role:"קרוספיט",                       type:"crossfit" },
+  { name:"נופר",       role:"הקול בראש (מנטלי)",              type:"mindset" }
 ];
 </script>
 

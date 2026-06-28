@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1200px;height:630px;overflow:hidden;font-family:"Heebo",system-ui,Arial,sans-serif}
+  .banner{width:1200px;height:630px;display:flex;align-items:center;justify-content:space-between;
+    gap:30px;padding:60px 70px;color:#f3f7f3;
+    background:radial-gradient(900px 500px at 80% -10%,#1f4a2b 0,#0d1410 62%);position:relative}
+  .banner::before{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(135deg,rgba(241,201,59,.05) 0 2px,transparent 2px 16px)}
+  .txt{position:relative;z-index:1}
+  .kicker{font-size:26px;font-weight:800;color:#F1C93B;letter-spacing:1px}
+  h1{font-size:96px;font-weight:900;line-height:.98;margin:8px 0 14px}
+  h1 b{color:#F1C93B}
+  .sub{font-size:30px;font-weight:700;color:#cfe6d6}
+  .pill{display:inline-block;margin-top:22px;background:linear-gradient(135deg,#F1C93B,#d9ad1f);
+    color:#1a1400;font-weight:900;font-size:24px;padding:10px 24px;border-radius:999px}
+  .logo{height:430px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));position:relative;z-index:1;flex:0 0 auto}
+</style>
+</head>
+<body>
+  <div class="banner">
+    <div class="txt">
+      <div class="kicker">CROSSFIT BUX · יהוד</div>
+      <h1>מחנה סאמר <b>BUX</b></h1>
+      <div class="sub">הלוז המלא · מה קורה עכשיו ומה הבא</div>
+      <div class="pill">☀️ 5–16.7 · א׳–ה׳ · 10:00–14:00</div>
+    </div>
+    <img class="logo" src="logo.png" alt="">
+  </div>
+</body>
+</html>
